@@ -1,5 +1,7 @@
 # Experiment: API Mocking
 
 Evaluate buy options
+
 - GraphQL Faker
-- GraphQL Tools mocking
+- GraphQL Tools Mocking
+- GraphQL Mocks

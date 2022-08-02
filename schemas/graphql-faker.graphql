@@ -1,0 +1,25 @@
+scalar Date
+
+type Book {
+  id: ID!
+  description: String @fake(type: words)
+  date: Date @fake(type: date)
+  Author: BookAuthor
+}
+
+type BookAuthor {
+  id: ID!
+  firstName: String @fake(type: firstName)
+  lastName: String @fake(type: lastName)
+  fullName: String @fake(type: fullName)
+}
+
+type Query {
+  Book(id: ID!): Book
+  Books(limit: Int, skip: Int, sort_field: String, sort_order: String): [Book]
+}
+
+type Mutation {
+  createBook(body: String): Book
+  deleteBook(id: ID!): Book
+}
