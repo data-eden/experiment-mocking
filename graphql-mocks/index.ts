@@ -1,39 +1,37 @@
-import { GraphQLHandler, embed } from "graphql-mocks";
-import { spyWrapper } from "@graphql-mocks/sinon";
+import { GraphQLHandler, embed } from 'graphql-mocks';
+import { spyWrapper } from '@graphql-mocks/sinon';
 import { falsoMiddleware } from '@graphql-mocks/falso';
-import fs from 'fs'
-import path from 'path'
+import fs from 'fs';
+import path from 'path';
 
 // this string represents our schema formatted in
 // GraphQL SDL (Schema Definition Language), but
 // a GraphQL Instance or SDL String can be used
-const graphqlSchema = fs.readFileSync(
-  path.resolve(__dirname, 'schema.gql')
-).toString()
-
+const graphqlSchema = fs
+  .readFileSync(path.resolve(__dirname, 'schema.gql'))
+  .toString();
 
 const handler = new GraphQLHandler({
   resolverMap: {
     Query: {
       // Example for using arguments to ensure field matches query
-      book: (parent, args) => ({ id: args.id })
+      book: (parent, args) => ({ id: args.id }),
     },
 
-   // Mock static data using the resolver map for a given type
+    // Mock static data using the resolver map for a given type
     BookAuthor: {
       firstName: () => 'Sean',
       lastName: () => 'Johnson',
       fullName: () => 'Sean Johnson',
-    }
+    },
   },
 
   middlewares: [
-
     // Use Falso for randomization / generation of rest of the schema
     falsoMiddleware({
       // Customize how often nulls appear for nullable fields
-      nullPercentage: .5,
-      nullListPercentage: .5,
+      nullPercentage: 0.5,
+      nullListPercentage: 0.5,
 
       fields: {
         Book: {
@@ -48,8 +46,8 @@ const handler = new GraphQLHandler({
           firstName: { falsoFn: 'randFirstName' },
           lastName: { falsoFn: 'randLastName' },
           fullName: { falsoFn: 'randFullName' },
-        }
-      }
+        },
+      },
     }),
     embed({
       wrappers: [spyWrapper],
