@@ -14,7 +14,9 @@
   "license": "MIT",
   "scripts": {
     "lint": "yarn prettier:check",
-    "prettier:check": "prettier '**/*' --check --ignore-unknown"
+    "prettier:check": "prettier '**/*' --check --ignore-unknown",
+    "graphql-mocks": "ts-node graphql-mocks/index.ts",
+    "graphql-mocks:serve": "gqlmocks serve --schema graphql-mocks/schema.gql"
   },
   "volta": {
     "node": "16.15.0",
@@ -22,11 +24,20 @@
   },
   "devDependencies": {
     "@faker-js/faker": "^7.4.0",
+    "@graphql-mocks/falso": "^0.4.0",
+    "@graphql-mocks/sinon": "^0.2.3",
     "@graphql-tools/mock": "^8.7.3",
     "@graphql-tools/schema": "^9.0.1",
     "@graphql-yoga/node": "^2.13.7",
+    "@ngneat/falso": "^6.1.0",
+    "@types/node": "^18.7.13",
+    "gqlmocks": "^0.2.0",
     "graphql": "^16.5.0",
     "graphql-faker": "^2.0.0-rc.25",
+    "graphql-mocks": "^0.8.4",
     "prettier": "^2.7.1"
+  },
+  "dependencies": {
+    "typescript": "^4.8.2"
   }
 }
