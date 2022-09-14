@@ -3,37 +3,16 @@ import { addMocksToSchema } from '@graphql-tools/mock';
 import { graphql } from 'graphql';
 import { faker } from '@faker-js/faker';
 import { createServer } from '@graphql-yoga/node';
+import fs from 'node:fs';
+import path from 'node:path';
 
 // Fill this in with the schema string
 // This can be based on introspection too:
 // https://www.graphql-tools.com/docs/mocking#mocking-a-schema-using-introspection
-const schemaString = `
-  scalar Date
-
-  type Book {
-    id: ID!
-    description: String
-    date: Date
-    author: BookAuthor
-  }
-
-  type BookAuthor {
-    id: ID!
-    firstName: String
-    lastName: String
-    fullName: String
-  }
-
-  type Query {
-    book(id: ID!): Book
-    books(limit: Int, skip: Int, sort_field: String, sort_order: String): [Book]
-  }
-
-  type Mutation {
-    createBook(body: String): Book
-    deleteBook(id: ID!): Book
-  }
-`;
+const schemaString = fs.readFileSync(
+  path.join('schemas', 'graphql-tools-mocking.graphql'),
+  'utf-8'
+);
 
 // Make a GraphQL schema with no resolvers
 const schema = makeExecutableSchema({ typeDefs: schemaString });
