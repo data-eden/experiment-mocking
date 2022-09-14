@@ -34,6 +34,13 @@ const schemaWithMocks = addMocksToSchema({
         // bla: 'example',
       };
     },
+
+    Query: {
+      books: () => {
+        // we can't get the input args from the query 😞
+        return [...new Array(faker.datatype.number({ min: 2, max: 6 }))];
+      },
+    },
   },
 });
 
@@ -47,6 +54,19 @@ server.start();
 const query = /* GraphQL */ `
   query Book {
     book(id: 6) {
+      id
+      description
+      date
+      author {
+        id
+        firstName
+        lastName
+        fullName
+      }
+    }
+
+    # this limit input is ignored by the mocker
+    books(limit: 1) {
       id
       description
       date
