@@ -1,6 +1,7 @@
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { addMocksToSchema } from '@graphql-tools/mock';
-import { graphql } from 'graphql';
+import { mapSchema, getDirective, MapperKind } from '@graphql-tools/utils';
+import { graphql, GraphQLSchema, defaultFieldResolver } from 'graphql';
 import { faker } from '@faker-js/faker';
 import { createServer } from '@graphql-yoga/node';
 
@@ -15,6 +16,7 @@ const schemaString = `
     description: String
     date: Date
     author: BookAuthor
+    urn: String @urn(type: "foo", fields: [{ name: "first" }, { name: "last" }])
   }
 
   type BookAuthor {
@@ -35,8 +37,68 @@ const schemaString = `
   }
 `;
 
+let id = 1;
+
+function idGenerator() {
+  return id++;
+}
+
+function urnDirective(schema: GraphQLSchema): GraphQLSchema {
+  const directiveName = 'urn';
+
+  return mapSchema(schema, {
+    [MapperKind.OBJECT_FIELD]: (fieldConfig) => {
+      const urnDirectiveArgs = getDirective(
+        schema,
+        fieldConfig,
+        directiveName
+      )?.[0] as
+        | {
+            type: string;
+            fields?: [];
+          }
+        | undefined;
+
+      if (urnDirectiveArgs) {
+        const { resolve = defaultFieldResolver } = fieldConfig;
+
+        return {
+          ...fieldConfig,
+          resolve: async function (source, args, context, info) {
+            const result = await resolve(source, args, context, info);
+
+            if (typeof result === 'string') {
+              const { type, fields = [] } = urnDirectiveArgs;
+
+              const baseUrn = `unique_urn_with_parts_${type}`;
+
+              if (fields.length) {
+                return `${baseUrn}:(${fields.map(() => idGenerator())})`;
+              }
+
+              return baseUrn;
+            }
+
+            return result;
+          },
+        };
+      }
+    },
+  });
+}
+
+const urnDirectiveTypeDef = () => `
+  directive @urn(type: String!, fields: [FieldMetadata!]) on FIELD_DEFINITION
+
+  input FieldMetadata {
+    name: String
+  }
+`;
+
 // Make a GraphQL schema with no resolvers
-const schema = makeExecutableSchema({ typeDefs: schemaString });
+const schema = makeExecutableSchema({
+  typeDefs: [schemaString, urnDirectiveTypeDef()],
+});
 
 // Create a new schema with mocks
 const schemaWithMocks = addMocksToSchema({
@@ -58,9 +120,11 @@ const schemaWithMocks = addMocksToSchema({
   },
 });
 
+const schemaWithUrnDirective = urnDirective(schemaWithMocks);
+
 // optionally we can serve the schema in the network
 const server = createServer({
-  schema: schemaWithMocks,
+  schema: schemaWithUrnDirective,
 });
 
 server.start();
@@ -71,6 +135,7 @@ const query = /* GraphQL */ `
       id
       description
       date
+      urn
       author {
         id
         firstName
@@ -82,7 +147,7 @@ const query = /* GraphQL */ `
 `;
 
 graphql({
-  schema: schemaWithMocks,
+  schema: schemaWithUrnDirective,
   source: query,
 }).then((result) => {
   console.log('Got result %o', result);
